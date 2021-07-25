@@ -3,19 +3,10 @@ package wkt
 import (
 	"bytes"
 	"fmt"
-
 	"github.com/paulmach/orb"
 )
 
-// MarshalString returns a WKT representation of the Geometry if possible.
-func MarshalString(g orb.Geometry) string {
-	buf := bytes.NewBuffer(nil)
-
-	wkt(buf, g)
-	return buf.String()
-}
-
-func wkt(buf *bytes.Buffer, geom orb.Geometry) {
+func Marshal(buf *bytes.Buffer, geom orb.Geometry) {
 	switch g := geom.(type) {
 	case orb.Point:
 		fmt.Fprintf(buf, "POINT(%g %g)", g[0], g[1])
@@ -57,7 +48,7 @@ func wkt(buf *bytes.Buffer, geom orb.Geometry) {
 		}
 		buf.WriteByte(')')
 	case orb.Ring:
-		wkt(buf, orb.Polygon{g})
+		Marshal(buf, orb.Polygon{g})
 	case orb.Polygon:
 		if len(g) == 0 {
 			buf.Write([]byte(`POLYGON EMPTY`))
@@ -103,11 +94,11 @@ func wkt(buf *bytes.Buffer, geom orb.Geometry) {
 			if i != 0 {
 				buf.WriteByte(',')
 			}
-			wkt(buf, c)
+			Marshal(buf, c)
 		}
 		buf.WriteByte(')')
 	case orb.Bound:
-		wkt(buf, g.ToPolygon())
+		Marshal(buf, g.ToPolygon())
 	default:
 		panic("unsupported type")
 	}
